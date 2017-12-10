@@ -22,3 +22,7 @@ Homestead.json
 composer\.lock
 
 \.idea/
+
+\.phpstorm\.meta\.php
+
+_ide_helper\.php
