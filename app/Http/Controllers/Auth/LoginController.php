@@ -6,5 +6,21 @@ use App\Http\Controllers\Controller;
 
 class LoginController extends Controller
 {
+	public function redirectToFb()
+	{
 
+	}
+
+	public function handleCallback(){
+
+	}
+
+	public function handleDeAuthCallback(){
+
+	}
+
+	public function logout()
+	{
+
+	}
 }
