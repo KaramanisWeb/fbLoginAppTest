@@ -54,9 +54,8 @@ class LoginController extends Controller
 				'is_active' => true,
 			]);
 		}
-
 		Auth::login($user, true);
-
+		session()->regenerate();
 		return redirect()->route('user');
 	}
 
@@ -71,6 +70,8 @@ class LoginController extends Controller
 	{
 		$logoutUrl = $this->facebook->getLogoutURL(Auth::user()->fb_token);
 		Auth::logout();
+		session()->flush();
+		session()->regenerate();
 		if ($request->fromFacebook === 'on') {
 			return redirect()->away($logoutUrl);
 		}

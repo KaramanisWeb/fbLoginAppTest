@@ -18,6 +18,8 @@ class ActiveUser
 	{
 		if (Auth::user()->is_active === false) {
 			Auth::logout();
+			session()->flush();
+			session()->regenerate();
 			return redirect()->route('home');
 		}
 
