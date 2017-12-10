@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Facebook\FacebookManager;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -16,11 +17,12 @@ class LoginController extends Controller
 
 	public function redirectToFb()
 	{
-
+		$fbURL = $this->facebook->getLoginURL();
+		return redirect()->away($fbURL);
 	}
 
-	public function handleCallback(){
-
+	public function handleLoginCallback(){
+		$fbUser = $this->facebook->getUser();
 	}
 
 	public function handleDeAuthCallback(){
@@ -29,6 +31,7 @@ class LoginController extends Controller
 
 	public function logout()
 	{
-
+		Auth::logout();
+		return redirect()->route('home');
 	}
 }

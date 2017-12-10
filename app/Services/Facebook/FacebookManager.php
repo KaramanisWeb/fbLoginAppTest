@@ -7,6 +7,9 @@ use Facebook\Facebook;
 class FacebookManager
 {
 	protected $fb;
+	protected $helper;
+	protected $authClient;
+	protected $permissions = ['public_profile', 'email'];
 
 	public function __construct()
 	{
@@ -15,24 +18,32 @@ class FacebookManager
 			'app_secret' => config('services.facebook.client_secret'),
 			'default_graph_version' => 'v2.11',
 		]);
+
+		$this->helper = $this->fb->getRedirectLoginHelper();
+		$this->authClient = $this->fb->getOAuth2Client();
 	}
 
-	public function getLoginURL()
+	public function getLoginURL(string $callbackURL = null): string
 	{
-
+		return $this->helper->getLoginUrl($callbackURL ?: config('services.facebook.callback'), $this->permissions);
 	}
 
-	public function getLogoutURL()
+	public function getLogoutURL(string $token, string $redirectURL = null): string
 	{
-
+		return $this->helper->getLogoutUrl($token, $redirectURL ?: url('/'));
 	}
 
 	public function getUser()
 	{
-
+		$token = $this->getToken();
+		return $this->fb->get('/me', $token);
 	}
 
 	public function getToken(){
-
+		$token = $this->helper->getAccessToken();
+		if (!$token->isLongLived()) {
+			$token = $this->authClient->getLongLivedAccessToken($token);
+		}
+		return $token;
 	}
 }
