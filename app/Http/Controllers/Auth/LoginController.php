@@ -61,7 +61,10 @@ class LoginController extends Controller
 	}
 
 	public function handleDeAuthCallback(){
-
+		$fbUid = $this->facebook->getDeAuthID();
+		User::query()->where('fb_uid','=', $fbUid)->update([
+			'is_active' => false
+		]);
 	}
 
 	public function logout(Request $request)

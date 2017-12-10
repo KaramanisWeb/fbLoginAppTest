@@ -5,8 +5,10 @@ namespace App\Services\Facebook;
 use Facebook\Authentication\AccessToken;
 use Facebook\Facebook;
 use Facebook\FacebookResponse;
+use Facebook\Authentication\AccessTokenMetadata;
 use Illuminate\Contracts\Session\Session;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class FacebookManager
 {
@@ -39,6 +41,12 @@ class FacebookManager
 		return $this->helper->getLogoutUrl($token, $redirectURL ?: url('/'));
 	}
 
+	public function getDeAuthID()
+	{
+		$signedRequest = request()->get('signed_request');
+		return $this->parseSignedRequest($signedRequest)['user_id'];
+	}
+
 	public function getUser(): \stdClass
 	{
 		$token = $this->getToken();
@@ -53,12 +61,12 @@ class FacebookManager
 		return Helper::array_equal($scopes,$this->permissions);
 	}
 
-	public function removeApp($token)
+	public function removeApp($token): void
 	{
 		$this->fb->delete('/me/permissions', [], $token);
 	}
 
-	protected function getMetadata($accessToken)
+	protected function getMetadata($accessToken): AccessTokenMetadata
 	{
 		return $this->authClient->debugToken($accessToken);
 	}
@@ -81,5 +89,21 @@ class FacebookManager
 			'picture' => isset($data['id']) ? 'https://graph.facebook.com/v2.11/' . $data['id'] . '/picture?type=normal' : null,
 		];
 		return (object)array_merge($user, $data);
+	}
+
+	protected function parseSignedRequest($signed_request)
+	{
+		list($encoded_sig,$payload) = explode('.', $signed_request ?: '1.1', 2);
+		$secret = config('services.facebook.client_secret');
+
+		$sig = Helper::base64UrlDecode($encoded_sig);
+		$data = json_decode(Helper::base64UrlDecode($payload), true);
+
+		$expected_sig = hash_hmac('sha256', $payload, $secret, $raw = true);
+		if ($sig !== $expected_sig) {
+			Log::error('Bad Signed JSON signature!');
+			return null;
+		}
+		return $data;
 	}
 }
