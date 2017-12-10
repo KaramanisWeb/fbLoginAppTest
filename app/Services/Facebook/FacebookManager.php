@@ -46,6 +46,23 @@ class FacebookManager
 		return $this->prepareUserData($response, $token);
 	}
 
+	public function validatePermissions($accessToken): bool
+	{
+		$metadata = $this->getMetadata($accessToken);
+		$scopes = $metadata->getField('scopes');
+		return Helper::array_equal($scopes,$this->permissions);
+	}
+
+	public function removeApp($token)
+	{
+		$this->fb->delete('/me/permissions', [], $token);
+	}
+
+	protected function getMetadata($accessToken)
+	{
+		return $this->authClient->debugToken($accessToken);
+	}
+
 	protected function getToken()
 	{
 		$token = $this->helper->getAccessToken();

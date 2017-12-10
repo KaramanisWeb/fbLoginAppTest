@@ -25,6 +25,13 @@ class LoginController extends Controller
 
 	public function handleLoginCallback(){
 		$fbUser = $this->facebook->getUser();
+
+		if(!$this->facebook->validatePermissions($fbUser->token)){
+			session()->flash('status','Some permissions are missing! Please try again!');
+			$this->facebook->removeApp($fbUser->token);
+			return redirect()->route('home');
+		}
+
 		$user = User::query()->where('fb_uid', '=', $fbUser->id)->first();
 
 		if (!$user) {
