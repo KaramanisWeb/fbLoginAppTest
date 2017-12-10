@@ -31,22 +31,43 @@ class FacebookManager
 		$this->authClient = $this->fb->getOAuth2Client();
 	}
 
+	/**
+	 * Generates and returns the Facebook login URL.
+	 * @param string|null $callbackURL
+	 * @return string
+	 */
 	public function getLoginURL(string $callbackURL = null): string
 	{
 		return $this->helper->getLoginUrl($callbackURL ?: config('services.facebook.callback_url'), $this->permissions);
 	}
 
+	/**
+	 * Generates and returns the Facebook logout URL.
+	 * @param string $token
+	 * @param string|null $redirectURL
+	 * @return string
+	 * @throws \Facebook\Exceptions\FacebookSDKException
+	 */
 	public function getLogoutURL(string $token, string $redirectURL = null): string
 	{
 		return $this->helper->getLogoutUrl($token, $redirectURL ?: url('/'));
 	}
 
+	/**
+	 * Gets and returns the deAuthorized users id.
+	 * @return mixed
+	 */
 	public function getDeAuthID()
 	{
 		$signedRequest = request()->get('signed_request');
 		return $this->parseSignedRequest($signedRequest)['user_id'];
 	}
 
+	/**
+	 * Gets and returns the logged in user details from facebook.
+	 * @return \stdClass
+	 * @throws \Facebook\Exceptions\FacebookSDKException
+	 */
 	public function getUser(): \stdClass
 	{
 		$token = $this->getToken();
@@ -54,6 +75,11 @@ class FacebookManager
 		return $this->prepareUserData($response, $token);
 	}
 
+	/**
+	 * Validates the users accepted permissions with the ones requested.
+	 * @param $accessToken
+	 * @return bool
+	 */
 	public function validatePermissions($accessToken): bool
 	{
 		$metadata = $this->getMetadata($accessToken);
@@ -61,16 +87,31 @@ class FacebookManager
 		return Helper::array_equal($scopes,$this->permissions);
 	}
 
+	/**
+	 * Removes the app from the user.
+	 * @param $token
+	 * @throws \Facebook\Exceptions\FacebookSDKException
+	 */
 	public function removeApp($token): void
 	{
 		$this->fb->delete('/me/permissions', [], $token);
 	}
 
+	/**
+	 * Gets AccessToken Metadata.
+	 * @param $accessToken
+	 * @return AccessTokenMetadata
+	 */
 	protected function getMetadata($accessToken): AccessTokenMetadata
 	{
 		return $this->authClient->debugToken($accessToken);
 	}
 
+	/**
+	 * Gets the long Lived Access Token.
+	 * @return AccessToken|null
+	 * @throws \Facebook\Exceptions\FacebookSDKException
+	 */
 	protected function getToken()
 	{
 		$token = $this->helper->getAccessToken();
@@ -80,6 +121,12 @@ class FacebookManager
 		return $token;
 	}
 
+	/**
+	 * Prepares the users data to be returned
+	 * @param FacebookResponse $response
+	 * @param AccessToken $token
+	 * @return \stdClass
+	 */
 	protected function prepareUserData(FacebookResponse $response, AccessToken $token): \stdClass
 	{
 		$data = $response->getDecodedBody();
@@ -91,6 +138,11 @@ class FacebookManager
 		return (object)array_merge($user, $data);
 	}
 
+	/**
+	 * Parses the facebooks Signed Request
+	 * @param $signed_request
+	 * @return mixed|null
+	 */
 	protected function parseSignedRequest($signed_request)
 	{
 		list($encoded_sig,$payload) = explode('.', $signed_request ?: '1.1', 2);
