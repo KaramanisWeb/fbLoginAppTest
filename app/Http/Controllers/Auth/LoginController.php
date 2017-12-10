@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\Facebook\FacebookManager;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,6 +24,32 @@ class LoginController extends Controller
 
 	public function handleLoginCallback(){
 		$fbUser = $this->facebook->getUser();
+		$user = User::query()->where('fb_uid', '=', $fbUser->id)->first();
+
+		if (!$user) {
+			$user = User::query()->create([
+				'name' => $fbUser->name,
+				'email' => $fbUser->email,
+				'fb_token' => $fbUser->token,
+				'fb_uid' => $fbUser->id,
+				'picture' => $fbUser->picture,
+				'link' => $fbUser->link,
+				'fb_token_expires' => $fbUser->expires,
+				'is_active' => true,
+			]);
+		}else{
+			$user->update([
+				'name' => $fbUser->name,
+				'email' => $fbUser->email,
+				'fb_token' => $fbUser->token,
+				'fb_token_expires' => $fbUser->expires,
+				'is_active' => true,
+			]);
+		}
+
+		Auth::login($user, true);
+
+		return redirect()->route('user');
 	}
 
 	public function handleDeAuthCallback(){

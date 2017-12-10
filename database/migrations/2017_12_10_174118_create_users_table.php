@@ -17,13 +17,13 @@ class CreateUsersTable extends Migration
 			$table->increments('id');
 			$table->string('name');
 			$table->string('email');
-			$table->string('fbtoken')->unique();
-			$table->string('fbuid')->unique();
+			$table->string('fb_token')->unique();
+			$table->string('fb_uid')->unique();
 			$table->string('picture');
 			$table->string('link');
 			$table->boolean('is_active')->default(true);
 			$table->rememberToken();
-			$table->timestamp('fbtoken_expires');
+			$table->timestamp('fb_token_expires');
 			$table->timestamps();
 
 			$table->index('fb_uid');

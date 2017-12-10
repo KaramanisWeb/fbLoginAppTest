@@ -2,8 +2,11 @@
 
 namespace App\Services\Facebook;
 
+use Facebook\Authentication\AccessToken;
 use Facebook\Facebook;
+use Facebook\FacebookResponse;
 use Illuminate\Contracts\Session\Session;
+use Carbon\Carbon;
 
 class FacebookManager
 {
@@ -11,6 +14,7 @@ class FacebookManager
 	protected $helper;
 	protected $authClient;
 	protected $permissions = ['public_profile', 'email'];
+	protected $attributes = ['id', 'name', 'email', 'gender', 'verified', 'link'];
 
 	public function __construct(Session $session)
 	{
@@ -27,7 +31,7 @@ class FacebookManager
 
 	public function getLoginURL(string $callbackURL = null): string
 	{
-		return $this->helper->getLoginUrl($callbackURL ?: config('services.facebook.callback'), $this->permissions);
+		return $this->helper->getLoginUrl($callbackURL ?: config('services.facebook.callback_url'), $this->permissions);
 	}
 
 	public function getLogoutURL(string $token, string $redirectURL = null): string
@@ -35,17 +39,30 @@ class FacebookManager
 		return $this->helper->getLogoutUrl($token, $redirectURL ?: url('/'));
 	}
 
-	public function getUser()
+	public function getUser(): \stdClass
 	{
 		$token = $this->getToken();
-		return $this->fb->get('/me', $token);
+		$response = $this->fb->get('/me?fields=' . implode(',', $this->attributes), $token);
+		return $this->prepareUserData($response, $token);
 	}
 
-	public function getToken(){
+	protected function getToken()
+	{
 		$token = $this->helper->getAccessToken();
 		if (!$token->isLongLived()) {
 			$token = $this->authClient->getLongLivedAccessToken($token);
 		}
 		return $token;
+	}
+
+	protected function prepareUserData(FacebookResponse $response, AccessToken $token): \stdClass
+	{
+		$data = $response->getDecodedBody();
+		$user = [
+			'token' => $token->getValue(),
+			'expires' => Carbon::createFromTimestamp($token->getExpiresAt()->getTimestamp()),
+			'picture' => isset($data['id']) ? 'https://graph.facebook.com/v2.11/' . $data['id'] . '/picture?type=normal' : null,
+		];
+		return (object)array_merge($user, $data);
 	}
 }
