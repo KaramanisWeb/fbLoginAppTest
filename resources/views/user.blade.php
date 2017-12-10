@@ -13,7 +13,12 @@
                             </div>
                         @endif
                         <h2>About me</h2>
-                        You are logged in!
+                        <div class="row">
+                            <div class="pull-left ">
+                                <img src="{{ Auth::user()->picture }}" class="col-lg-3" class="img-responsive" alt="Responsive image">
+                                <h4 class="col-md-9">{{ Auth::user()->name }}</h4>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

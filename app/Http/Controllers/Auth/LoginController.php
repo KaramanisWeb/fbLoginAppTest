@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Facebook\FacebookManager;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
@@ -56,9 +57,13 @@ class LoginController extends Controller
 
 	}
 
-	public function logout()
+	public function logout(Request $request)
 	{
+		$logoutUrl = $this->facebook->getLogoutURL(Auth::user()->fb_token);
 		Auth::logout();
+		if ($request->fromFacebook === 'on') {
+			return redirect()->away($logoutUrl);
+		}
 		return redirect()->route('home');
 	}
 }

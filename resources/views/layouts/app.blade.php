@@ -52,15 +52,18 @@
 
                                 <ul class="dropdown-menu">
                                     <li>
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="padding: 3px 20px;">
+                                            {{ csrf_field() }}
+                                            <input type="checkbox" name="fromFacebook" class="form-check-input">
+                                            From FB also!
+                                        </form>
+                                    </li>
+                                    <li>
                                         <a href="{{ route('logout') }}"
-                                            onclick="event.preventDefault();
+                                           onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                             Logout
                                         </a>
-
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                            {{ csrf_field() }}
-                                        </form>
                                     </li>
                                 </ul>
                             </li>
