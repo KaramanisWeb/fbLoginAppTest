@@ -3,6 +3,7 @@
 namespace App\Services\Facebook;
 
 use Facebook\Facebook;
+use Illuminate\Contracts\Session\Session;
 
 class FacebookManager
 {
@@ -11,12 +12,13 @@ class FacebookManager
 	protected $authClient;
 	protected $permissions = ['public_profile', 'email'];
 
-	public function __construct()
+	public function __construct(Session $session)
 	{
 		$this->fb = new Facebook([
 			'app_id' => config('services.facebook.client_id'),
 			'app_secret' => config('services.facebook.client_secret'),
 			'default_graph_version' => 'v2.11',
+			'persistent_data_handler' => new PersistentData($session)
 		]);
 
 		$this->helper = $this->fb->getRedirectLoginHelper();
